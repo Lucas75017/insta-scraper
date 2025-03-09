@@ -2,4 +2,3 @@ flask
 instaloader
 pandas
 openpyxl
-sqlite3
