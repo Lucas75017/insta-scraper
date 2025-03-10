@@ -9,9 +9,9 @@ import time
 
 app = Flask(__name__)
 
-# Comptes Instagram disponibles pour éviter le blocage
-INSTAGRAM_ACCOUNTS = ["lucas_08h08", "syna_agency", "romeol62"]
-CURRENT_ACCOUNT_INDEX = 0  # On alterne entre les comptes
+# Liste des comptes Instagram autorisés pour scraper
+INSTAGRAM_ACCOUNTS = ["romeol62"]  # Lucas_08h08 et Syna_Agency ont été supprimés
+CURRENT_ACCOUNT_INDEX = 0  # On alterne entre les comptes disponibles
 
 def get_instagram_session():
     """ Charge une session Instagram en alternant entre plusieurs comptes. """
@@ -156,4 +156,4 @@ def home():
     '''
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(debug=True)
