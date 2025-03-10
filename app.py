@@ -17,12 +17,14 @@ def get_instagram_session():
     """ Charge une session Instagram en alternant entre plusieurs comptes. """
     global CURRENT_ACCOUNT_INDEX
     L = instaloader.Instaloader()
-    
+
     account = INSTAGRAM_ACCOUNTS[CURRENT_ACCOUNT_INDEX]
     CURRENT_ACCOUNT_INDEX = (CURRENT_ACCOUNT_INDEX + 1) % len(INSTAGRAM_ACCOUNTS)  # Passe au compte suivant
 
+    session_file = f"/Users/lucaspouliquen/.config/instaloader/session-{account}"  # Chemin absolu de la session
+
     try:
-        L.load_session_from_file(account)
+        L.load_session_from_file(account, filename=session_file)
         print(f"✅ Session chargée avec {account}")
     except Exception as e:
         print(f"❌ Erreur de connexion à {account} : {e}")
@@ -107,7 +109,8 @@ def scrape_instagram(username):
     }
 
     # Sauvegarde dans un fichier Excel
-    file_path = f"/tmp/{username}_stats.xlsx"
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    file_path = os.path.join(desktop_path, f"{username}_stats.xlsx")
 
     with pd.ExcelWriter(file_path) as writer:
         df.to_excel(writer, index=False, sheet_name='Posts')
@@ -122,20 +125,8 @@ def save_influencer_data(username, followers, avg_likes, avg_comments, engagemen
     cursor = conn.cursor()
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS influencers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            followers_count INTEGER,
-            avg_likes REAL,
-            avg_comments REAL,
-            engagement_rate REAL,
-            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    cursor.execute('''
-        INSERT INTO influencers (name, followers_count, avg_likes, avg_comments, engagement_rate)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO influencers (name, followers_count, avg_likes, avg_comments, engagement_rate, last_updated)
+        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     ''', (username, followers, avg_likes, avg_comments, engagement_rate))
 
     conn.commit()
@@ -167,5 +158,4 @@ def home():
     '''
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))  # Correction pour Render
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=10000)
