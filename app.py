@@ -9,16 +9,27 @@ import time
 
 app = Flask(__name__)
 
-# Liste des comptes Instagram autorisés pour scraper
-INSTAGRAM_ACCOUNTS = ["romeol62"]  # Lucas_08h08 et Syna_Agency ont été supprimés
-CURRENT_ACCOUNT_INDEX = 0  # On alterne entre les comptes disponibles
+# 📌 Comptes Instagram disponibles
+INSTAGRAM_ACCOUNTS = ["mart.inette92", "romeol62"]
+CURRENT_ACCOUNT_INDEX = 0  # On alterne entre les comptes
+
+# 📌 Debug : Vérification des fichiers de session sur Render
+SESSION_PATH = "/root/.config/instaloader/"
+if os.path.exists(SESSION_PATH):
+    print("✅ Dossier des sessions trouvé.")
+    print("📂 Contenu des sessions :", os.listdir(SESSION_PATH))
+else:
+    print("❌ Dossier des sessions introuvable.")
+
 
 def get_instagram_session():
     """ Charge une session Instagram en alternant entre plusieurs comptes. """
     global CURRENT_ACCOUNT_INDEX
     L = instaloader.Instaloader()
-    
+
     account = INSTAGRAM_ACCOUNTS[CURRENT_ACCOUNT_INDEX]
+    session_file = f"session-{account}"
+
     CURRENT_ACCOUNT_INDEX = (CURRENT_ACCOUNT_INDEX + 1) % len(INSTAGRAM_ACCOUNTS)  # Passe au compte suivant
 
     try:
@@ -30,11 +41,13 @@ def get_instagram_session():
 
     return L
 
+
 def wait_before_next_request():
     """ Ajoute un délai aléatoire pour éviter les blocages d'Instagram. """
     delay = random.randint(30, 120)  # Attente aléatoire entre 30 et 120 secondes
     print(f"⏳ Pause de {delay} secondes avant la prochaine requête...")
     time.sleep(delay)
+
 
 def scrape_instagram(username):
     """ Récupère les stats d'un compte Instagram et les stocke dans la base de données. """
@@ -83,7 +96,7 @@ def scrape_instagram(username):
     min_story_views = 0.1 * followers_count
     max_story_views = 0.2 * followers_count
 
-    # Simulation des données démographiques (amélioration possible)
+    # Simulation des données démographiques
     audience_demographics = {
         'Gender': {'Female': '60%', 'Male': '40%'},
         'Location': {'France': '50%', 'Belgique': '20%', 'Suisse': '10%', 'Autres': '20%'},
@@ -117,6 +130,7 @@ def scrape_instagram(username):
 
     return send_file(file_path, as_attachment=True)
 
+
 def save_influencer_data(username, followers, avg_likes, avg_comments, engagement_rate):
     """ Enregistre les données de l'influenceur dans la base de données SQLite. """
     conn = sqlite3.connect("influencers.db")
@@ -131,10 +145,12 @@ def save_influencer_data(username, followers, avg_likes, avg_comments, engagemen
     conn.close()
     print(f"✅ Données de {username} enregistrées avec succès.")
 
+
 @app.route('/scrape/<username>')
 def scrape(username):
     """ API permettant de scraper un influenceur en passant son pseudo dans l'URL. """
     return scrape_instagram(username)
+
 
 @app.route('/')
 def home():
@@ -154,6 +170,7 @@ def home():
       </body>
     </html>
     '''
+
 
 if __name__ == '__main__':
     app.run(debug=True)
