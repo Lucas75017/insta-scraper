@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify
 import instaloader
 import os
 import random
@@ -13,6 +13,19 @@ CURRENT_ACCOUNT_INDEX = 0  # Index pour alterner les comptes
 # Dossier des sessions
 SESSION_FOLDER = ".config/instaloader"
 
+# Vérifier si le dossier des sessions existe
+if not os.path.exists(SESSION_FOLDER):
+    os.makedirs(SESSION_FOLDER)
+    print(f"✅ Dossier des sessions créé : {SESSION_FOLDER}")
+else:
+    print(f"📂 Dossier des sessions déjà existant : {SESSION_FOLDER}")
+
+def list_available_sessions():
+    """ Liste les sessions disponibles """
+    available_sessions = [f for f in os.listdir(SESSION_FOLDER) if f.startswith("session-")]
+    print(f"📂 Sessions disponibles : {available_sessions}")
+    return available_sessions
+
 def get_instagram_session():
     """ Charge une session Instagram en alternant entre plusieurs comptes. """
     global CURRENT_ACCOUNT_INDEX
@@ -22,7 +35,8 @@ def get_instagram_session():
     session_file = os.path.join(SESSION_FOLDER, f"session-{account}")
     
     if not os.path.exists(session_file):
-        return {"error": f"❌ Session introuvable pour {account}"}
+        print(f"❌ Session introuvable pour {account}")
+        return None
 
     try:
         L.load_session_from_file(account, filename=session_file)
@@ -52,6 +66,7 @@ def scrape_instagram(username):
     try:
         profile = instaloader.Profile.from_username(L.context, username)
     except Exception as e:
+        print(f"❌ Erreur de récupération du profil {username} : {e}")
         return jsonify({"error": f"Erreur lors de la récupération du profil : {e}"})
 
     print(f"📊 Récupération des données de {username}...")
@@ -86,4 +101,5 @@ def home():
     '''
 
 if __name__ == '__main__':
+    list_available_sessions()  # Affiche les sessions disponibles au démarrage
     app.run(debug=True)
