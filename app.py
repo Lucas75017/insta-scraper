@@ -22,7 +22,7 @@ def get_instagram_session():
     session_file = os.path.join(SESSION_FOLDER, f"session-{account}")
     
     if not os.path.exists(session_file):
-        return {"error": f"❌ Session introuvable pour {account}"}
+        return None  # Retourne None au lieu d'une erreur JSON
 
     try:
         L.load_session_from_file(account, filename=session_file)
@@ -47,12 +47,12 @@ def scrape_instagram(username):
     """ 📌 Scrape un compte Instagram en changeant automatiquement de session """
     L = get_instagram_session()
     if not L:
-        return jsonify({"error": "Impossible de se connecter à Instagram."})
+        return jsonify({"error": "Impossible de se connecter à Instagram. Session introuvable."}), 400
 
     try:
         profile = instaloader.Profile.from_username(L.context, username)
     except Exception as e:
-        return jsonify({"error": f"Erreur lors de la récupération du profil : {e}"})
+        return jsonify({"error": f"Erreur lors de la récupération du profil : {e}"}), 400
 
     print(f"📊 Récupération des données de {username}...")
 
@@ -71,9 +71,8 @@ def scrape_instagram(username):
 @app.route('/')
 def home():
     """ 🏠 Page d'accueil """
-    return render_template("index.html")
+    return "Bienvenue sur l'API Instagram Scraper. Utilisez /scrape/<username> pour scraper un compte."
 
 if __name__ == '__main__':
-    import os
-    port = int(os.environ.get("PORT", 10000))  # Render définit automatiquement le PORT
+    port = int(os.environ.get("PORT", 5000))  # Render définit automatiquement le PORT, 5000 est par défaut
     app.run(host="0.0.0.0", port=port, debug=True)
