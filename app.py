@@ -6,11 +6,11 @@ import time
 
 app = Flask(__name__)
 
-# Comptes disponibles pour scraper
+# Comptes disponibles pour scraper (ajoutez vos comptes ici)
 INSTAGRAM_ACCOUNTS = ["mart.inette92", "romeol62", "hubertmirgaton"]
 CURRENT_ACCOUNT_INDEX = 0  # Index pour alterner les comptes
 
-# Dossier des sessions
+# Dossier des sessions Instagram
 SESSION_FOLDER = ".config/instaloader"
 
 def get_instagram_session():
@@ -46,8 +46,10 @@ def wait_before_next_request():
 def scrape_instagram(username):
     """ Scrape un compte Instagram en changeant automatiquement de session. """
     L = get_instagram_session()
-    if not L:
-        return jsonify({"error": "Impossible de se connecter à Instagram."})
+    
+    # Vérification si la session est valide
+    if isinstance(L, dict):  
+        return jsonify({"error": L["error"]})  
 
     try:
         profile = instaloader.Profile.from_username(L.context, username)
@@ -56,7 +58,7 @@ def scrape_instagram(username):
 
     print(f"📊 Récupération des données de {username}...")
 
-    # Simulation des statistiques pour éviter de faire trop de requêtes
+    # Simulation des statistiques pour éviter de se faire bloquer
     summary = {
         "Username": username,
         "Followers": profile.followers,
