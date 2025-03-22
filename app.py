@@ -6,15 +6,15 @@ import time
 
 app = Flask(__name__)
 
-# Comptes disponibles pour scraper (ajoutez vos comptes ici)
+# 📌 Liste des comptes disponibles pour scraper
 INSTAGRAM_ACCOUNTS = ["mart.inette92", "romeol62", "hubertmirgaton"]
 CURRENT_ACCOUNT_INDEX = 0  # Index pour alterner les comptes
 
-# Dossier des sessions Instagram
-SESSION_FOLDER = ".config/instaloader"
+# 📌 Dossier des sessions
+SESSION_FOLDER = "sessions"  # On utilise le bon dossier
 
 def get_instagram_session():
-    """ Charge une session Instagram en alternant entre plusieurs comptes. """
+    """ 📌 Charge une session Instagram en alternant entre plusieurs comptes """
     global CURRENT_ACCOUNT_INDEX
     L = instaloader.Instaloader()
 
@@ -31,25 +31,23 @@ def get_instagram_session():
         print(f"❌ Erreur de connexion à {account} : {e}")
         return None
 
-    # Alterne au compte suivant pour la prochaine requête
+    # 📌 Alterne au compte suivant pour la prochaine requête
     CURRENT_ACCOUNT_INDEX = (CURRENT_ACCOUNT_INDEX + 1) % len(INSTAGRAM_ACCOUNTS)
 
     return L
 
 def wait_before_next_request():
-    """ Ajoute un délai aléatoire pour éviter les blocages d'Instagram. """
-    delay = random.randint(30, 120)  # Attente aléatoire entre 30 et 120 secondes
+    """ ⏳ Ajoute un délai aléatoire pour éviter les blocages """
+    delay = random.randint(30, 120)  # Attente entre 30 et 120 secondes
     print(f"⏳ Pause de {delay} secondes avant la prochaine requête...")
     time.sleep(delay)
 
 @app.route('/scrape/<username>')
 def scrape_instagram(username):
-    """ Scrape un compte Instagram en changeant automatiquement de session. """
+    """ 📌 Scrape un compte Instagram en changeant automatiquement de session """
     L = get_instagram_session()
-    
-    # Vérification si la session est valide
-    if isinstance(L, dict):  
-        return jsonify({"error": L["error"]})  
+    if not L:
+        return jsonify({"error": "Impossible de se connecter à Instagram."})
 
     try:
         profile = instaloader.Profile.from_username(L.context, username)
@@ -58,7 +56,6 @@ def scrape_instagram(username):
 
     print(f"📊 Récupération des données de {username}...")
 
-    # Simulation des statistiques pour éviter de se faire bloquer
     summary = {
         "Username": username,
         "Followers": profile.followers,
@@ -67,7 +64,7 @@ def scrape_instagram(username):
         "Engagement Rate": f"{random.uniform(1.5, 5.0):.2f}%"  # Simulé
     }
 
-    wait_before_next_request()  # Ajoute un délai
+    wait_before_next_request()  # ⏳ Ajoute un délai
 
     return jsonify(summary)
 
