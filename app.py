@@ -74,5 +74,5 @@ def home():
     return "Bienvenue sur l'API Instagram Scraper. Utilisez /scrape/<username> pour scraper un compte."
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Render définit automatiquement le PORT, 5000 est par défaut
+    port = int(os.environ.get("PORT", 5050))  # 🔥 CHANGEMENT DU PORT À 5050 POUR ÉVITER LE CONFLIT
     app.run(host="0.0.0.0", port=port, debug=True)
