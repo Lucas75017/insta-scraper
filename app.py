@@ -6,23 +6,21 @@ import time
 
 app = Flask(__name__)
 
-# 📌 Comptes Instagram disponibles pour le scraping
+# Comptes disponibles pour scraper
 INSTAGRAM_ACCOUNTS = ["mart.inette92", "romeol62", "hubertmirgaton"]
-CURRENT_ACCOUNT_INDEX = 0  # 🔄 Alternance des comptes
+CURRENT_ACCOUNT_INDEX = 0  # Index pour alterner les comptes
 
-# 📂 Dossier où sont stockées les sessions Instagram
+# Dossier des sessions
 SESSION_FOLDER = ".config/instaloader"
 
 def get_instagram_session():
-    """ 🔄 Charge une session Instagram en alternant entre les comptes """
+    """ Charge une session Instagram en alternant entre plusieurs comptes. """
     global CURRENT_ACCOUNT_INDEX
     L = instaloader.Instaloader()
 
-    # Récupération du compte à utiliser
     account = INSTAGRAM_ACCOUNTS[CURRENT_ACCOUNT_INDEX]
     session_file = os.path.join(SESSION_FOLDER, f"session-{account}")
-
-    # Vérifie si la session existe
+    
     if not os.path.exists(session_file):
         return {"error": f"❌ Session introuvable pour {account}"}
 
@@ -33,20 +31,20 @@ def get_instagram_session():
         print(f"❌ Erreur de connexion à {account} : {e}")
         return None
 
-    # 🔄 Passe au compte suivant pour éviter le bannissement
+    # Alterne au compte suivant pour la prochaine requête
     CURRENT_ACCOUNT_INDEX = (CURRENT_ACCOUNT_INDEX + 1) % len(INSTAGRAM_ACCOUNTS)
 
     return L
 
 def wait_before_next_request():
-    """ ⏳ Ajoute un délai pour éviter les blocages Instagram """
-    delay = random.randint(30, 120)  # Pause aléatoire entre 30 et 120 sec
+    """ Ajoute un délai aléatoire pour éviter les blocages d'Instagram. """
+    delay = random.randint(30, 120)  # Attente aléatoire entre 30 et 120 secondes
     print(f"⏳ Pause de {delay} secondes avant la prochaine requête...")
     time.sleep(delay)
 
 @app.route('/scrape/<username>')
 def scrape_instagram(username):
-    """ 🚀 Scrape un profil Instagram """
+    """ Scrape un compte Instagram en changeant automatiquement de session. """
     L = get_instagram_session()
     if not L:
         return jsonify({"error": "Impossible de se connecter à Instagram."})
@@ -54,11 +52,11 @@ def scrape_instagram(username):
     try:
         profile = instaloader.Profile.from_username(L.context, username)
     except Exception as e:
-        return jsonify({"error": f"❌ Erreur lors de la récupération du profil : {e}"})
+        return jsonify({"error": f"Erreur lors de la récupération du profil : {e}"})
 
     print(f"📊 Récupération des données de {username}...")
 
-    # 📈 Données simulées pour éviter trop de requêtes
+    # Simulation des statistiques pour éviter de faire trop de requêtes
     summary = {
         "Username": username,
         "Followers": profile.followers,
@@ -77,4 +75,6 @@ def home():
     return render_template("index.html")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 10000))  # Render définit automatiquement le PORT
+    app.run(host="0.0.0.0", port=port, debug=True)
